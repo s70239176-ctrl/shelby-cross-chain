@@ -1,0 +1,32 @@
+# railway.toml — HotLink Cache service configuration
+# https://docs.railway.app/reference/config-as-code
+
+[build]
+# Use the Dockerfile at repo root (Railway auto-detects, but explicit is safer)
+builder      = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+# Pass NEXT_PUBLIC_ vars as Docker build args so Next.js bundles them
+# into the client JS at build time. Runtime-only vars (API keys, private
+# keys) are NOT listed here — set those in the Railway dashboard.
+[build.args]
+NEXT_PUBLIC_SHELBY_NETWORK          = "shelbynet"
+NEXT_PUBLIC_SHELBY_RPC_URL          = "https://api.shelbynet.shelby.xyz/shelby"
+NEXT_PUBLIC_SHELBY_EXPLORER_URL     = "https://explorer.shelby.xyz/shelbynet"
+NEXT_PUBLIC_APTOS_FULLNODE_URL      = "https://api.shelbynet.shelby.xyz/v1"
+NEXT_PUBLIC_SHELBY_CONTRACT_ADDRESS = "0xc63d6a5efb0080a6029403131715bd4971e1149f7cc099aac69bb0069b3ddbf5"
+# NEXT_PUBLIC_HOTLINK_MODULE_ADDRESS — set this in Railway vars after deploy:move
+
+[deploy]
+# Railway injects $PORT automatically; CMD in Dockerfile uses it
+startCommand   = "node apps/web/server.js"
+# Health check: Railway pings /api/health every 30s
+# A 200 response keeps the service alive; non-200 triggers a restart
+healthcheckPath    = "/api/health"
+healthcheckTimeout = 30
+# Give the Next.js server 60s to boot before health checks start
+restartPolicyType  = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[[services]]
+name = "hotlink-cache"

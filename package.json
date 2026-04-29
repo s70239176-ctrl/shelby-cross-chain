@@ -1,0 +1,31 @@
+{
+  "name": "hotlink-cache",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Shelby Cross-Cache Bridge — decentralized hot storage layer with cross-chain access",
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "build":        "turbo run build",
+    "dev":          "turbo run dev --parallel",
+    "start":        "node apps/web/server.js",
+    "lint":         "turbo run lint",
+    "clean":        "turbo run clean && rm -rf node_modules",
+
+    "setup:shelby": "bash scripts/setup-shelbynet.sh",
+    "deploy:move":  "bash scripts/deploy-move.sh",
+    "fund":         "bash scripts/fund-accounts.sh",
+    "test:upload":  "tsx scripts/test-upload.ts",
+    "test:read":    "tsx scripts/test-crosschain-read.ts",
+    "format":       "prettier --write \"**/*.{ts,tsx,json,md}\""
+  },
+  "devDependencies": {
+    "turbo":      "^2.0.0",
+    "prettier":   "^3.0.0",
+    "tsx":        "^4.0.0",
+    "typescript": "^5.4.0"
+  }
+}

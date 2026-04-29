@@ -1,0 +1,32 @@
+# .dockerignore — exclude files from Docker build context
+# Keeps context small → faster uploads to Railway build workers
+
+# Dependencies (installed fresh inside Docker)
+node_modules
+**/node_modules
+
+# Build outputs
+.next
+**/dist
+**/.turbo
+
+# Dev / test artifacts
+.env
+.env.local
+.env.*.local
+scripts/*.sh
+scripts/test-*.ts
+
+# Move / Aptos artifacts
+contracts/move/build
+*.key
+
+# Misc
+.git
+.gitignore
+.DS_Store
+*.log
+coverage
+DEPLOYMENT.md
+TESTING-SCENARIOS.md
+extensions/
