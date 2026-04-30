@@ -1,47 +1,29 @@
 # .dockerignore — HotLink Cache
-# Excludes files from the Docker build context sent to Railway.
-# Keep this list TIGHT — incorrect exclusions cause "not found" COPY errors.
+# Only exclude what would break the build or bloat the image.
+# Do NOT exclude source files or package.json manifests.
 
-# ── Build outputs (regenerated inside Docker) ─────────────────────────────────
+# Build outputs (rebuilt inside Docker)
 **/.next
 **/dist
 **/.turbo
-**/build
 
-# ── Secrets (must NEVER be in the image) ─────────────────────────────────────
+# Local node_modules — Railway's clone won't have these anyway,
+# but exclude them for local `docker build` runs
+**/node_modules
+
+# Move compiled artifacts
+contracts/move/build
+
+# Secrets — never send to build daemon
 .env
 .env.local
 .env.*.local
 *.key
 solana-dev.json
 
-# ── Move / Aptos compiled artifacts ──────────────────────────────────────────
-contracts/move/build
+# Git internals
+.git
 
-# ── Dev/test scripts (not needed in production image) ────────────────────────
-scripts/
-extensions/
-
-# ── Docs (save build-context bytes) ──────────────────────────────────────────
-DEPLOYMENT.md
-TESTING-SCENARIOS.md
-
-# ── OS / Editor ───────────────────────────────────────────────────────────────
+# OS noise
 .DS_Store
 Thumbs.db
-.vscode
-.idea
-
-# ── Git ───────────────────────────────────────────────────────────────────────
-.git
-.gitignore
-
-# ── Logs ─────────────────────────────────────────────────────────────────────
-*.log
-
-# NOTE: node_modules is intentionally NOT excluded globally.
-# The deps stage copies manifests only (no node_modules from host).
-# The builder stage uses COPY . . but node_modules won't exist on Railway's
-# build worker (they run a fresh clone). On local Docker builds, add:
-#   **/node_modules
-# to this file if you have local node_modules that would pollute the context.
