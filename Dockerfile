@@ -30,18 +30,16 @@ ENV NEXT_PUBLIC_SHELBY_NETWORK=$NEXT_PUBLIC_SHELBY_NETWORK \
 
 RUN pnpm --filter @hotlink-cache/sdk-integration build
 
-# Run next build from the app directory directly so Next.js resolves
-# next.config.js from the correct working directory
-WORKDIR /app/apps/web
-RUN node_modules/.bin/next build
+# Build Next.js from the app directory using the root-installed next binary.
+# `next build` reads next.config.js relative to the --dir path (apps/web),
+# so output:standalone is applied correctly.
+RUN node /app/node_modules/.bin/next build apps/web
 
-# Verify standalone was generated — fail loudly here rather than with a
-# cryptic BuildKit "not found" error in the runner stage
-RUN test -d .next/standalone || \
-    (echo "ERROR: .next/standalone not found. Check that next.config.js has output:'standalone'" && exit 1)
+# Fail loudly if standalone was not produced
+RUN test -d apps/web/.next/standalone || \
+    (echo "ERROR: .next/standalone missing — verify next.config.js has output:'standalone'" && exit 1)
 
-# Ensure static and public exist even if empty
-RUN mkdir -p .next/static public
+RUN mkdir -p apps/web/.next/static apps/web/public
 
 # ── Runner ────────────────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
