@@ -10,6 +10,7 @@ WORKDIR /app
 
 COPY . .
 
+# Install all workspace deps — pnpm puts next inside apps/web/node_modules
 RUN pnpm install
 
 ARG NEXT_PUBLIC_SHELBY_NETWORK=shelbynet
@@ -28,16 +29,18 @@ ENV NEXT_PUBLIC_SHELBY_NETWORK=$NEXT_PUBLIC_SHELBY_NETWORK \
     NEXT_TELEMETRY_DISABLED=1 \
     SKIP_ENV_VALIDATION=1
 
+# Build sdk-integration first (web depends on it via workspace:*)
 RUN pnpm --filter @hotlink-cache/sdk-integration build
 
-# Build Next.js from the app directory using the root-installed next binary.
-# `next build` reads next.config.js relative to the --dir path (apps/web),
-# so output:standalone is applied correctly.
-RUN node /app/node_modules/.bin/next build apps/web
+# Build Next.js app.
+# pnpm --filter sets cwd to apps/web before running the script, so
+# `next build` inside package.json resolves from apps/web/node_modules/.bin/next
+# and finds next.config.js in the correct directory.
+RUN pnpm --filter @hotlink-cache/web run build
 
 # Fail loudly if standalone was not produced
 RUN test -d apps/web/.next/standalone || \
-    (echo "ERROR: .next/standalone missing — verify next.config.js has output:'standalone'" && exit 1)
+    (echo "ERROR: .next/standalone not found — check next.config.js has output:'standalone'" && exit 1)
 
 RUN mkdir -p apps/web/.next/static apps/web/public
 
