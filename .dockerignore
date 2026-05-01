@@ -1,29 +1,8 @@
-# .dockerignore — HotLink Cache
-# Only exclude what would break the build or bloat the image.
-# Do NOT exclude source files or package.json manifests.
-
-# Build outputs (rebuilt inside Docker)
-**/.next
-**/dist
-**/.turbo
-
-# Local node_modules — Railway's clone won't have these anyway,
-# but exclude them for local `docker build` runs
-**/node_modules
-
-# Move compiled artifacts
-contracts/move/build
-
-# Secrets — never send to build daemon
+node_modules
+.next
 .env
 .env.local
 .env.*.local
-*.key
-solana-dev.json
-
-# Git internals
 .git
-
-# OS noise
 .DS_Store
-Thumbs.db
+*.log

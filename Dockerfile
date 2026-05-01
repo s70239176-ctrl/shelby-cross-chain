@@ -1,16 +1,18 @@
 # =============================================================================
-# Dockerfile — HotLink Cache  (Railway)
+# Dockerfile — HotLink Cache (flat repo, Railway)
+# next.config.js and package.json are at repo root.
+# `next build` runs from WORKDIR /app — same directory as next.config.js.
+# No monorepo, no workspaces, no filter flags, no cd.
 # =============================================================================
 
 FROM node:20-alpine AS builder
 
-RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
-
 WORKDIR /app
 
-COPY . .
+COPY package.json ./
+RUN npm install
 
-RUN pnpm install
+COPY . .
 
 ARG NEXT_PUBLIC_SHELBY_NETWORK=shelbynet
 ARG NEXT_PUBLIC_SHELBY_RPC_URL=https://api.shelbynet.shelby.xyz/shelby
@@ -28,23 +30,7 @@ ENV NEXT_PUBLIC_SHELBY_NETWORK=$NEXT_PUBLIC_SHELBY_NETWORK \
     NEXT_TELEMETRY_DISABLED=1 \
     SKIP_ENV_VALIDATION=1
 
-# Build sdk-integration (web depends on it via workspace:*)
-RUN pnpm --filter @hotlink-cache/sdk-integration build
-
-# Build Next.js by cd-ing into apps/web so:
-#   1. next.config.js is found in cwd
-#   2. next binary resolves from apps/web/node_modules/.bin/next
-# Both conditions are required for output:standalone to apply.
-RUN cd apps/web && ./node_modules/.bin/next build
-
-# Show .next contents in build log
-RUN ls -la apps/web/.next/
-
-# Guard
-RUN test -d apps/web/.next/standalone || \
-    (echo "ERROR: standalone not generated" && exit 1)
-
-RUN mkdir -p apps/web/.next/static apps/web/public
+RUN npm run build
 
 # ── Runner ────────────────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
@@ -59,12 +45,10 @@ ENV NODE_ENV=production \
 RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 nextjs
 
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static      ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public            ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static     ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public           ./public
 
 USER nextjs
-
 EXPOSE 3000
-
 CMD ["node", "server.js"]
