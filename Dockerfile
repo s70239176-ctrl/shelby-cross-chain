@@ -28,16 +28,21 @@ ENV NEXT_PUBLIC_SHELBY_NETWORK=$NEXT_PUBLIC_SHELBY_NETWORK \
     NEXT_TELEMETRY_DISABLED=1 \
     SKIP_ENV_VALIDATION=1
 
+# Build sdk-integration (web depends on it via workspace:*)
 RUN pnpm --filter @hotlink-cache/sdk-integration build
 
-RUN pnpm --filter @hotlink-cache/web run build
+# Build Next.js by cd-ing into apps/web so:
+#   1. next.config.js is found in cwd
+#   2. next binary resolves from apps/web/node_modules/.bin/next
+# Both conditions are required for output:standalone to apply.
+RUN cd apps/web && ./node_modules/.bin/next build
 
-# Show what was generated so Railway logs confirm standalone exists
-RUN ls -la apps/web/.next/ && echo "---" && ls -la apps/web/.next/standalone/ || echo "standalone dir not present"
+# Show .next contents in build log
+RUN ls -la apps/web/.next/
 
-# Fail loudly if standalone was not produced
+# Guard
 RUN test -d apps/web/.next/standalone || \
-    (echo "ERROR: standalone not generated — next.config.js output:standalone not applied" && exit 1)
+    (echo "ERROR: standalone not generated" && exit 1)
 
 RUN mkdir -p apps/web/.next/static apps/web/public
 
