@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@aptos-labs/ts-sdk": "^1.35.0",
+    "@aptos-labs/ts-sdk": "^5.2.1",
     "@aptos-labs/wallet-adapter-react": "^3.0.0",
     "@aptos-labs/wallet-adapter-core": "^3.0.0",
     "@solana/wallet-adapter-base": "^0.9.0",

@@ -1,8 +1,5 @@
 # =============================================================================
 # Dockerfile — HotLink Cache (flat repo, Railway)
-# next.config.js and package.json are at repo root.
-# `next build` runs from WORKDIR /app — same directory as next.config.js.
-# No monorepo, no workspaces, no filter flags, no cd.
 # =============================================================================
 
 FROM node:20-alpine AS builder
@@ -10,7 +7,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY package.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 COPY . .
 
